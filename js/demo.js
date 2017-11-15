@@ -22,7 +22,10 @@ $(function () {
                 $p = $('<p>');
 
             if (textField === 'input') {
-                $textField.attr('size')
+                $textField.attr('size', 100);
+            } else {
+                $textField.attr('cols', 100)
+                    .attr('rows', 15);
             }
 
             $p.append($textField, $button)
