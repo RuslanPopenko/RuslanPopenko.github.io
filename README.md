@@ -1,5 +1,5 @@
 # RuslanPopenko.github.io
-Speech Recognition demonstartion
+Speech Recognition demonstration
 
 index.html contains base html file.
 
