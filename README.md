@@ -1,10 +1,23 @@
 # RuslanPopenko.github.io
 Speech Recognition demonstration
 
-index.html contains base html file.
+See index.html and styles/styles.css.
 
-js/demo.js shows how to use SpeechRecognition and SpeechRecognitionSupport.
+How it works?
 
-speech_recognition contains files that works with Web Speech API, just put them to project and use it API.
+This code:
 
-test contains development files.
+```html
+<input class="imcms-speech-recognition">|<textarea class="imcms-speech-recognition"></textarea>
+```
+
+
+Transforms to this:
+
+```html
+<div class="speech-wrapper speech-supported|speech-unavailable">
+    <input class="imcms-speech-recognition">|<textarea class="imcms-speech-recognition"></textarea>
+    <button class="speech-button speech-button--enabled|speech-button--disabled"></button>
+    <div class="speech-message"></div>
+</div>
+```
