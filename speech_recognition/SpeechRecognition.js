@@ -186,6 +186,14 @@ class SpeechRecognition {
             recognition.onstart = function (event) {
                 startTimeStamp = event.timeStamp;
                 recognizing = true;
+
+                const activeElement = elements.find(t => t.active);
+                if (activeElement) {
+                    const val = activeElement.textField.val();
+                    if (val) {
+                        finalTranscript = val + '. ';
+                    }
+                }
             };
 
             recognition.onend = function () {
