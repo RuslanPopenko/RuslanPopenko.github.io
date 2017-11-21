@@ -1,8 +1,6 @@
 class SpeechRecognition {
     constructor() {
         this.language = 'sv-SE';
-        this.textFieldsButtons = [];
-        this.onStateChangeEvents = [];
     }
 
     static supportedLanguages() {
@@ -109,13 +107,39 @@ class SpeechRecognition {
             ['ภาษาไทย', ['th-TH']]];
     }
 
+    static errorMessages() {
+        return {
+            noSpeech : {
+                defaultMessage: 'No speech was detected. You may need to adjust your ' +
+                '<a href="//support.google.com/chrome/bin/answer.py?hl=en&amp;answer=1407892">microphone'
+            },
+            noMicrophone: {
+                defaultMessage: 'No microphone was found. Ensure that a microphone is installed and that ' +
+                '<a href="//support.google.com/chrome/bin/answer.py?hl=en&amp;answer=1407892">microphone settings</a>' +
+                ' are configured correctly.'
+
+            },
+            blocked: {
+                defaultMessage: 'Permission to use microphone is blocked. To change, go to ' +
+                'chrome://settings/contentExceptions#media-stream'
+            },
+            denied: {
+                defaultMessage: 'Permission to use microphone was denied.'
+            }
+        }
+    }
+
     setLanguageCode(languageCode) {
+        if (!languageCode) {
+            return this;
+        }
+
         const isSupported = SpeechRecognition.supportedLanguages()
             .map(mapLanguageToCode)
             .reduce((l1, l2) => l1.concat(l2), [])
             .some(langCode => langCode === languageCode);
         if (!isSupported) {
-            throw new Error('Language ' + languageCode + ' isn\'t supported');
+            throw new Error("Language " + languageCode + " isn't supported");
         }
         this.language = languageCode;
         return this;
@@ -129,24 +153,25 @@ class SpeechRecognition {
         }
     }
 
-    addTextFieldAndButton(textField, button) {
-        this.textFieldsButtons.push({
-            textField: textField,
-            button: button
-        });
-
+    setElements(elements) {
+        this.elements = elements;
         return this;
     }
 
-    addOnStateChangeEvent(onStateChangeEvent) {
-        this.onStateChangeEvents.push(onStateChangeEvent);
+    onSpeechListening(event) {
+        this.onSpeechListening = event;
+        return this;
+    }
+
+    onSpeechOver(event) {
+        this.onSpeechOver = event;
         return this;
     }
 
     build() {
-        return configureRecognition(this.textFieldsButtons, this.onStateChangeEvents, this.language);
+        return configureRecognition(this.elements, this.onSpeechListening, this.onSpeechOver, this.language);
 
-        function configureRecognition(textFieldsButtons, onStateChangeEvents, language) {
+        function configureRecognition(elements, onSpeechListening, onSpeechOver, language) {
             const recognition = new webkitSpeechRecognition();
 
             recognition.continuous = true;
@@ -154,20 +179,47 @@ class SpeechRecognition {
             recognition.lang = language;
 
             let recognizing = false,
+                startTimeStamp,
+                clearErrorMessage,
                 finalTranscript = '';
 
-            recognition.onstart = function () {
+            recognition.onstart = function (event) {
+                startTimeStamp = event.timeStamp;
                 recognizing = true;
-            };
-
-            recognition.onerror = function (event) {
-                console.error(event.error);
             };
 
             recognition.onend = function () {
                 recognizing = false;
-                invokeOnStateChangeEvents(false);
+                invokeOnStateChangeEvent(false);
                 finalTranscript = '';
+            };
+
+            recognition.onerror = function (event) {
+                switch (event.error) {
+                    case 'no-speech':
+                        displayMessage('noSpeech');
+                        break;
+                    case 'audio-capture':
+                        displayMessage('noMicrophone');
+                        break;
+                    case 'not-allowed':
+                        if (event.timeStamp - startTimeStamp < 100) {
+                            displayMessage('blocked');
+                        } else {
+                            displayMessage('denied');
+                        }
+                        break;
+                }
+
+                function displayMessage(errorCode) {
+                    const errorMessages = SpeechRecognition.errorMessages(),
+                        errorMsg = errorMessages[errorCode][language] || errorMessages[errorCode].defaultMessage,
+                        activeElement = elements.find(t => t.active);
+
+                    activeElement.message.html(errorMsg);
+
+                    clearErrorMessage = () => activeElement.message.html('');
+                }
             };
 
             recognition.onresult = function (event) {
@@ -189,27 +241,28 @@ class SpeechRecognition {
                 writeToActiveTextField(finalTranscript + interimTranscript);
 
                 function writeToActiveTextField(text) {
-                    const activeTextFieldButton = textFieldsButtons.find(t => !!t.active);
+                    const activeElement = elements.find(t => t.active);
 
-                    if (activeTextFieldButton) {
-                        const activeTextField = activeTextFieldButton.textField;
-                        if (activeTextField.val) {
-                            activeTextField.val(text);
-                        } else {
-                            activeTextField.value += text;
-                        }
+                    if (activeElement) {
+                        const activeTextField = activeElement.textField;
+                        activeTextField.val(text);
                     }
                 }
             };
 
-            textFieldsButtons.forEach(addOnClickEventToEveryButton);
+            elements.forEach(addOnClickEventToEveryButton);
 
             return recognition;
 
-            function addOnClickEventToEveryButton(textFieldButton, index) {
-                textFieldButton.button.click(() => {
-                    const id = textFieldsButtons.findIndex(t => !!t.active),
+            function addOnClickEventToEveryButton(element, index) {
+                element.button.click(() => {
+                    const id = elements.findIndex(t => t.active),
                         restart = id !== -1 && id !== index;
+
+                    if (clearErrorMessage) {
+                        clearErrorMessage();
+                        clearErrorMessage = undefined;
+                    }
 
                     if (recognizing && restart) {
                         stopRecognition();
@@ -222,29 +275,28 @@ class SpeechRecognition {
 
                     function stopRecognition() {
                         recognition.stop();
-                        invokeOnStateChangeEvents(false);
-                        textFieldsButtons.forEach(tfb => delete tfb.active);
+                        invokeOnStateChangeEvent(false);
+                        elements.forEach(tfb => delete tfb.active);
                     }
 
                     function startRecognition() {
+                        elements.forEach(tfb => delete tfb.active);
+                        element.active = true;
                         recognition.start();
-                        textFieldButton.active = true;
-                        invokeOnStateChangeEvents(true);
+                        invokeOnStateChangeEvent(true);
                     }
                 });
             }
 
 
-            function invokeOnStateChangeEvents(speechListening) {
-                const activeTextFieldButton = textFieldsButtons.find(t => !!t.active);
-                if (activeTextFieldButton) {
-                    onStateChangeEvents.forEach((e) => {
-                        e(activeTextFieldButton.textField, activeTextFieldButton.button, speechListening);
-                    });
+            function invokeOnStateChangeEvent(speechListening) {
+                const activeElement = elements.find(t => t.active);
+                if (activeElement) {
+                    speechListening
+                        ? onSpeechListening(activeElement.button) : onSpeechOver(activeElement.button);
                 }
             }
         }
     }
-
 
 }
