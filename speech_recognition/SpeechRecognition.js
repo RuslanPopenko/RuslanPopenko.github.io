@@ -253,6 +253,11 @@ class SpeechRecognition {
 
                     if (activeElement) {
                         const activeTextField = activeElement.textField;
+
+                        text = text.split('. ')
+                            .map(t => t.replace(/\S/, s => s.toUpperCase()))
+                            .join('. ');
+
                         activeTextField.val(text);
                     }
                 }
