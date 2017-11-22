@@ -5,7 +5,8 @@ $(function () {
     $('.imcms-speech-recognition').each(processTextField);
 
     if (supported) {
-        var src = $("script[src$='ImcmsSpeechRecognition.js']")
+        var $thisScript = $("script[src$='ImcmsSpeechRecognition.js']"),
+            src = $thisScript
                 .attr('src')
                 .replace('ImcmsSpeechRecognition', 'SpeechRecognition'),
             speechRecognitionScript = document.createElement('script');
@@ -14,7 +15,7 @@ $(function () {
         speechRecognitionScript.setAttribute('src', src);
         speechRecognitionScript.onload = function () {
             new SpeechRecognition()
-                .setLanguageCode(speechRecognitionScript.getAttribute('data-language'))
+                .setLanguageCode($thisScript.data('language'))
                 .setElements(elements)
                 .onSpeechListening(onSpeechListening)
                 .onSpeechOver(onSpeechOver)

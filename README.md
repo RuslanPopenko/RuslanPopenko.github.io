@@ -11,7 +11,6 @@ This code:
 <input class="imcms-speech-recognition">|<textarea class="imcms-speech-recognition"></textarea>
 ```
 
-
 Transforms to this:
 
 ```html
@@ -20,4 +19,13 @@ Transforms to this:
     <button class="speech-button speech-button--enabled|speech-button--disabled"></button>
     <div class="speech-message"></div>
 </div>
+```
+By default it uses Swedish language - code sv-SE. List of the available languages and theirs codes you may get with ```SpeechRecognition.supportedLanguages()```. 
+
+How setup language?
+
+You just need to import script with attribute ```data-language```.
+
+```html
+<script data-language="uk-UA" src="speech_recognition/ImcmsSpeechRecognition.js"></script>
 ```
