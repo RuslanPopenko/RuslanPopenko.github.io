@@ -35,6 +35,16 @@ input.imcms-speech-recognition {
     float: left;
 }
 
+.speech-button--clear {
+    height: 20px;
+    width: 50px;
+    content: "Clear";
+}
+
+.speech-button--clear::after {
+    content: "Clear";
+}
+
 .speech-button--disabled {
     background: url(/images/mic.gif) no-repeat;
 }

@@ -299,6 +299,8 @@ class SpeechRecognition {
                         invokeOnStateChangeEvent(true);
                     }
                 });
+
+                element.speechButtonClear.click(() => element.textField.val(''));
             }
 
 

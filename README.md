@@ -17,6 +17,7 @@ Transforms to this:
 <div class="speech-wrapper speech-supported|speech-unavailable">
     <input class="imcms-speech-recognition">|<textarea class="imcms-speech-recognition"></textarea>
     <button class="speech-button speech-button--enabled|speech-button--disabled"></button>
+    <button class="speech-button speech-button--clear"></button>
     <div class="speech-message"></div>
 </div>
 ```

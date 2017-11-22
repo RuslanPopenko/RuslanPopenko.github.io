@@ -36,18 +36,21 @@ $(function () {
     function processTextField() {
         var $textField = $(this),
             $button = $('<button>', {'class': 'speech-button speech-button--disabled'}),
+            $speechButtonClear = $('<button>', {'class': 'speech-button speech-button--clear'}),
             $message = $('<div>', {'class': 'speech-message'});
 
         $textField
             .wrap('<div class="speech-wrapper"></div>')
             .parent()
             .append($button)
+            .append($speechButtonClear)
             .append($message)
             .addClass(supported ? 'speech-supported' : 'speech-unavailable');
 
         elements.push({
             textField: $textField,
             button: $button,
+            speechButtonClear: $speechButtonClear,
             message: $message
         });
     }
